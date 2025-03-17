@@ -1,17 +1,20 @@
 import { dbClient } from '@/lib/internal/db-client'
 import { MovieDetailClient } from './MovieDetailClient'
-import { getServerSession } from 'next-auth/next'
-import { notFound } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
+import { getServerSession } from '@/lib/auth'
+import { Suspense } from 'react'
 
 export default async function MovieDetailPage({
   params,
 }: {
   params: { id: string }
 }) {
+  params = await params
+
   const movieId = parseInt(params.id)
 
   if (isNaN(movieId)) {
-    return notFound()
+    return redirect('/login')
   }
 
   // Get the movie with its relations
@@ -29,24 +32,29 @@ export default async function MovieDetailPage({
 
   // Check if the user has purchased this movie
   let isPurchased = false
-  const session = await getServerSession()
-
-  if (session?.user?.email) {
-    const user = await dbClient.user.findUnique({
-      where: { email: session.user.email },
-    })
-
-    if (user) {
-      const purchase = await dbClient.userPurchase.findFirst({
-        where: {
-          userId: user.id,
-          movieId: movie.id,
-        },
-      })
-
-      isPurchased = !!purchase
-    }
+  const user = await getServerSession()
+  if (!user) {
+    return notFound()
   }
 
-  return <MovieDetailClient movie={movie} isPurchased={isPurchased} />
+  if (user) {
+    const purchase = await dbClient.userPurchase.findFirst({
+      where: {
+        userId: user.id,
+        movieId: movie.id,
+      },
+      select: {
+        id: true,
+      },
+    })
+    isPurchased = !!purchase
+  }
+
+  console.log(isPurchased)
+
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MovieDetailClient movie={movie} isPurchased={isPurchased} />
+    </Suspense>
+  )
 }

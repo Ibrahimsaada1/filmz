@@ -44,7 +44,7 @@ export function MovieDetailClient({
       <Header />
 
       {/* Hero Section with Movie Backdrop */}
-      <div className="relative h-[70vh] w-full">
+      <div className="relative h-[40vh] w-full">
         <div className="absolute inset-0">
           <Image
             src={
