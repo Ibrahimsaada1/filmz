@@ -75,7 +75,7 @@ model UserPurchase {
   user          User     @relation(fields: [userId], references: [id])
   movie         Movie    @relation(fields: [movieId], references: [id])
 
-  @@unique([userId, movieId])
+  @@unique([userId, movieId]) // Unique constraint to prevent duplicate purchases
   @@map("user_purchases")
 }
 

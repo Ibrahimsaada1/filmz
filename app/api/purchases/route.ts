@@ -33,15 +33,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Movie not found' }, { status: 404 })
     }
 
+    console.error({ userId, movieId, price, paymentMethod })
     // Create purchase record
     const purchase = await dbClient.userPurchase.create({
       data: {
-        userId,
         movieId,
-        pricePaid: price,
+        userId,
         paymentMethod,
+        pricePaid: price,
         currency: 'USD',
-        transactionId: '1234567890',
+        transactionId: crypto.randomUUID(),
       },
     })
 
