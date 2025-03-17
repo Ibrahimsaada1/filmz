@@ -73,7 +73,7 @@ export default function LibraryPage() {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Header />
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-24">
         <div className="flex items-center mb-8">
           <Film className="w-6 h-6 text-red-600 mr-2" />
           <h1 className="text-3xl font-bold">My Library</h1>
