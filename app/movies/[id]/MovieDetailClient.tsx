@@ -36,6 +36,8 @@ export function MovieDetailClient({
 
   const handlePurchaseComplete = () => {
     setIsModalOpen(false)
+    // Refresh the page
+    window.location.reload()
     // You could add additional logic here if needed
   }
 
