@@ -7,6 +7,7 @@ import { getTMDBImageUrl } from '@/lib/services/tmdb'
 import { FavoriteButton } from '@/app/components/FavoriteButton'
 import { PurchaseModal } from '@/app/components/PurchaseModal'
 import { Movie, Genre, Pricing } from '@prisma/client'
+import Link from 'next/link'
 
 // Create a type that includes the relations
 type MovieWithRelations = Movie & {
@@ -14,7 +15,13 @@ type MovieWithRelations = Movie & {
   pricing: Pricing
 }
 
-export function MovieDetailClient({ movie }: { movie: MovieWithRelations }) {
+export function MovieDetailClient({
+  movie,
+  isPurchased,
+}: {
+  movie: MovieWithRelations
+  isPurchased: boolean
+}) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fallback image
@@ -101,42 +108,53 @@ export function MovieDetailClient({ movie }: { movie: MovieWithRelations }) {
 
             <p className="text-gray-300 mb-6">{movie.description}</p>
 
-            {/* Pricing Section */}
-            <div className="bg-gray-800 p-6 rounded-lg mb-6">
-              <h2 className="text-xl font-bold mb-4">Buy or Rent</h2>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex flex-col">
-                  {hasDiscount ? (
-                    <>
-                      <div className="flex items-center">
-                        <span className="text-gray-400 line-through text-lg mr-2">
-                          ${basePrice.toFixed(2)}
-                        </span>
-                        <span className="text-2xl font-bold text-white">
-                          ${discountPrice.toFixed(2)}
-                        </span>
-                        <span className="ml-2 text-sm bg-red-600 text-white px-2 py-1 rounded">
-                          {movie.pricing?.discountPercent}% OFF
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <span className="text-2xl font-bold text-white">
-                      ${basePrice.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-md transition-colors"
+            {isPurchased ? (
+              <div className="mb-6">
+                <Link
+                  href={`/watch/${movie.id}`}
+                  className="inline-block bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-md transition-colors"
                 >
-                  Buy Now
-                </button>
+                  Watch Now
+                </Link>
               </div>
-              <p className="text-sm text-gray-400">
-                Purchase includes unlimited streaming and downloads.
-              </p>
-            </div>
+            ) : (
+              // Pricing Section
+              <div className="bg-gray-800 p-6 rounded-lg mb-6">
+                <h2 className="text-xl font-bold mb-4">Buy or Rent</h2>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="flex flex-col">
+                    {hasDiscount ? (
+                      <>
+                        <div className="flex items-center">
+                          <span className="text-gray-400 line-through text-lg mr-2">
+                            ${basePrice.toFixed(2)}
+                          </span>
+                          <span className="text-2xl font-bold text-white">
+                            ${discountPrice.toFixed(2)}
+                          </span>
+                          <span className="ml-2 text-sm bg-red-600 text-white px-2 py-1 rounded">
+                            {movie.pricing?.discountPercent}% OFF
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-2xl font-bold text-white">
+                        ${basePrice.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium px-6 py-3 rounded-md transition-colors"
+                  >
+                    Buy Now
+                  </button>
+                </div>
+                <p className="text-sm text-gray-400">
+                  Purchase includes unlimited streaming and downloads.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

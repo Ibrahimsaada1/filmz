@@ -3,6 +3,7 @@ import { dbClient } from '@/lib/internal/db-client'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { JWT_SECRET } from '@/lib/config.server'
+import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
-        { status: 401 }
+        { status: 401 },
       )
     }
 
@@ -34,36 +35,38 @@ export async function POST(request: NextRequest) {
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
-        { status: 401 }
+        { status: 401 },
       )
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
+      {
         userId: user.id,
         email: user.email,
-        role: user.role
       },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '7d' },
     )
+
+    const cookieStore = await cookies()
+    cookieStore.set('session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60 * 24 * 7,
+      path: '/',
+    })
 
     // Return user data and token
     return NextResponse.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      },
-      token,
+      user: user,
+      token: token,
     })
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
       { error: 'Authentication failed' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
