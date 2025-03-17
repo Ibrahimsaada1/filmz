@@ -2,7 +2,6 @@ import {
   Genre,
   Movie,
   Pricing,
-  PrismaClient,
   UserLike,
   UserPurchase,
 } from '@prisma/client'
@@ -12,8 +11,6 @@ import {
   TMDB_IMAGE_URL,
 } from '../config.server'
 import { dbClient } from '../internal/db-client'
-
-const prisma = new PrismaClient()
 
 // Types for TMDB responses
 interface TMDBMovie {
@@ -257,7 +254,7 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
     }
 
     // Check if the movie already exists
-    const existingMovie = await prisma.movie.findUnique({
+    const existingMovie = await dbClient.movie.findUnique({
       where: { tmdbId: movie.id },
       include: { pricing: true },
     })
@@ -275,7 +272,7 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
       (shouldDiscount ? Math.floor(Math.random() * 30) + 10 : null)
 
     // Create or update the movie
-    const updatedMovie = await prisma.movie.upsert({
+    const updatedMovie = await dbClient.movie.upsert({
       where: { tmdbId: movie.id },
       update: {
         title: movie.title,
@@ -345,7 +342,7 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
     if (!existingMovie?.pricing) {
       if (!updatedMovie?.pricing) {
         // Create pricing if it doesn't exist
-        await prisma.pricing.create({
+        await dbClient.pricing.create({
           data: {
             movieId: updatedMovie.id,
             basePrice: 9.99,
@@ -365,7 +362,7 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
 async function upsertGenresToDatabase(genres: { id: number; name: string }[]) {
   try {
     for (const genre of genres) {
-      await prisma.genre.upsert({
+      await dbClient.genre.upsert({
         where: { tmdbId: genre.id },
         update: { name: genre.name },
         create: {
@@ -380,7 +377,7 @@ async function upsertGenresToDatabase(genres: { id: number; name: string }[]) {
   }
 }
 
-export async function fetchTMDBMovies(page: number = 1): Promise<TMDBMovie[]> {
+export async function fetchTMDBMovies(page: number = 1) {
   try {
     const response = await fetch(
       `${TMDB_API_URL}/discover/movie?` +
@@ -412,15 +409,19 @@ export async function fetchTMDBMovies(page: number = 1): Promise<TMDBMovie[]> {
       `Successfully fetched ${data.results.length} movies from TMDB (Page ${page}/${data.total_pages})`,
     )
 
-    return data.results
+    return data
   } catch (error) {
     console.error('Error fetching movies from TMDB:', error)
     throw error
   }
 }
 
-export async function syncTMDBMovies() {
-  const tmdbMovies = await fetchTMDBMovies()
+export async function syncTMDBMovies(page: number = 1) {
+  const tmdbMovies = await fetchTMDBMovies(page)
 
-  return await upsertMoviesToDatabase(tmdbMovies)
+  const movies = await upsertMoviesToDatabase(tmdbMovies.results)
+  return {
+    movies: movies ?? [],
+    totalPages: tmdbMovies.total_pages,
+  }
 }

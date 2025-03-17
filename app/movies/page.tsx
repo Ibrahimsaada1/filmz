@@ -5,8 +5,7 @@ import { GenreNav } from './GenreNav'
 import { Header } from '@/app/components/Header'
 import { MovieCard } from '@/app/components/MovieCard'
 import { Pagination } from '@/app/components/Pagination'
-import { getTMDBImageUrl } from '@/lib/services/tmdb'
-import { dbClient } from '@/lib/internal/db-client'
+import { getTMDBImageUrl, syncTMDBMovies } from '@/lib/services/tmdb'
 import { Prisma } from '@prisma/client'
 
 // Define the props type with ReadonlyURLSearchParams
@@ -14,19 +13,13 @@ type Props = {
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
-
 export default async function MoviesPage({ searchParams }: Props) {
   // First sync with TMDB
-  await syncMoviesWithTMDB()
-
   // Extract query parameters
   const pageParam = searchParams.page
   const genreParam = searchParams.genre
   const currentPage = typeof pageParam === 'string' ? parseInt(pageParam) : 1
   const genre = typeof genreParam === 'string' ? genreParam : ''
-
-  // Define page size
-  const pageSize = 20
 
   // Build where clause
   const where: Prisma.MovieWhereInput = {}
@@ -36,57 +29,13 @@ export default async function MoviesPage({ searchParams }: Props) {
     where.genreId = parseInt(genre)
   }
 
-  // Get total count for pagination
-  const totalCount = await dbClient.movie.count({ where })
-
-  // Calculate total pages
-  const totalPages = Math.ceil(totalCount / pageSize) || 1
-
-  // Calculate skip value for pagination
-  const skip = (currentPage - 1) * pageSize
-
   // Fetch movies with pagination and include pricing information
-  const movies = await dbClient.movie.findMany({
-    skip,
-    take: pageSize,
-    where,
-    include: {
-      genre: true,
-      pricing: true, // Include pricing information
-    },
-    orderBy: {
-      id: 'desc',
-    },
-  })
-
-  // Process movies to ensure they have pricing
-  const processedMovies = movies.map((movie) => {
-    // If movie has pricing, use it; otherwise, use default pricing
-    if (movie.pricing) {
-      return movie
-    } else {
-      // Create default pricing if none exists
-      return {
-        ...movie,
-        pricing: {
-          id: 0,
-          movieId: movie.id,
-          basePrice: 9.99,
-          discountPercent: 0,
-          currency: 'USD',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      }
-    }
-  })
+  const { movies, totalPages } = await syncTMDBMovies(currentPage)
 
   // Select a featured movie
   const featuredMovie =
-    processedMovies.length > 0
-      ? processedMovies[
-          Math.floor(Math.random() * Math.min(5, processedMovies.length))
-        ]
+    movies.length > 0
+      ? movies[Math.floor(Math.random() * Math.min(5, movies.length))]
       : null
 
   // Fallback image for when movie images are missing
@@ -144,21 +93,21 @@ export default async function MoviesPage({ searchParams }: Props) {
               {/* Buy Now section with pricing */}
               <div className="flex items-center gap-4">
                 <div className="flex flex-col">
-                  {featuredMovie.pricing?.discountPercent > 0 ? (
+                  {featuredMovie.pricing?.discountPercent ?? 0 > 0 ? (
                     <>
                       <div className="flex items-center">
                         <span className="text-gray-400 line-through text-lg mr-2">
-                          ${featuredMovie.pricing.basePrice.toFixed(2)}
+                          ${featuredMovie.pricing?.basePrice?.toFixed(2)}
                         </span>
                         <span className="text-2xl font-bold text-white">
                           $
                           {(
-                            featuredMovie.pricing.basePrice *
-                            (1 - featuredMovie.pricing.discountPercent / 100)
+                            featuredMovie.pricing?.basePrice ?? 0 *
+                            (1 - (featuredMovie.pricing?.discountPercent ?? 0) / 100)
                           ).toFixed(2)}
                         </span>
                         <span className="ml-2 text-sm bg-red-600 text-white px-2 py-1 rounded">
-                          {featuredMovie.pricing.discountPercent}% OFF
+                          {featuredMovie.pricing?.discountPercent ?? 0}% OFF
                         </span>
                       </div>
                     </>
@@ -216,10 +165,10 @@ export default async function MoviesPage({ searchParams }: Props) {
                 </div>
               }
             >
-              {processedMovies.length > 0 ? (
+              {movies.length > 0 ? (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                    {processedMovies.map((movie) => (
+                    {movies.map((movie) => (
                       <MovieCard key={movie.id} movie={movie} />
                     ))}
                   </div>
