@@ -1,10 +1,4 @@
-import {
-  Genre,
-  Movie,
-  Pricing,
-  UserLike,
-  UserPurchase,
-} from '@prisma/client'
+import { Genre, Movie, Pricing, UserLike, UserPurchase } from '@prisma/client'
 import {
   TMDB_ACCESS_TOKEN,
   TMDB_API_URL,
@@ -377,7 +371,7 @@ async function upsertGenresToDatabase(genres: { id: number; name: string }[]) {
   }
 }
 
-export async function fetchTMDBMovies(page: number = 1) {
+export async function fetchTMDBMovies(page: number = 1, genre: string = '') {
   try {
     const response = await fetch(
       `${TMDB_API_URL}/discover/movie?` +
@@ -387,6 +381,7 @@ export async function fetchTMDBMovies(page: number = 1) {
           language: 'en-US',
           page: page.toString(),
           sort_by: 'popularity.desc',
+          with_genres: !isNaN(parseInt(genre)) ? genre : '',
         }),
       {
         headers: {
@@ -416,8 +411,8 @@ export async function fetchTMDBMovies(page: number = 1) {
   }
 }
 
-export async function syncTMDBMovies(page: number = 1) {
-  const tmdbMovies = await fetchTMDBMovies(page)
+export async function syncTMDBMovies(page: number = 1, genre: string = '') {
+  const tmdbMovies = await fetchTMDBMovies(page, genre)
 
   const movies = await upsertMoviesToDatabase(tmdbMovies.results)
   return {

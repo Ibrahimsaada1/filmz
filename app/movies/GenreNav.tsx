@@ -1,5 +1,6 @@
 import { dbClient } from '@/lib/internal/db-client'
 import { GenreNavClient } from './GenreNavClient'
+import { fetchGenres } from '@/lib/services/tmdb'
 
 // Define props type
 type GenreNavProps = {
@@ -9,11 +10,7 @@ type GenreNavProps = {
 // Fetch genres from the server
 async function getGenres() {
   try {
-    const genres = await dbClient.genre.findMany({
-      orderBy: {
-        name: 'asc',
-      },
-    })
+    const genres = await fetchGenres()
     return genres
   } catch (error) {
     console.error('Error fetching genres:', error)

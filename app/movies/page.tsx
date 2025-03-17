@@ -16,21 +16,15 @@ type Props = {
 export default async function MoviesPage({ searchParams }: Props) {
   // First sync with TMDB
   // Extract query parameters
+  searchParams = await searchParams
+
   const pageParam = searchParams.page
   const genreParam = searchParams.genre
   const currentPage = typeof pageParam === 'string' ? parseInt(pageParam) : 1
   const genre = typeof genreParam === 'string' ? genreParam : ''
 
-  // Build where clause
-  const where: Prisma.MovieWhereInput = {}
-
-  // Add genre filter if provided and valid
-  if (genre && genre !== 'featured' && !isNaN(parseInt(genre))) {
-    where.genreId = parseInt(genre)
-  }
-
   // Fetch movies with pagination and include pricing information
-  const { movies, totalPages } = await syncTMDBMovies(currentPage)
+  const { movies, totalPages } = await syncTMDBMovies(currentPage, genre)
 
   // Select a featured movie
   const featuredMovie =
@@ -102,8 +96,11 @@ export default async function MoviesPage({ searchParams }: Props) {
                         <span className="text-2xl font-bold text-white">
                           $
                           {(
-                            featuredMovie.pricing?.basePrice ?? 0 *
-                            (1 - (featuredMovie.pricing?.discountPercent ?? 0) / 100)
+                            featuredMovie.pricing?.basePrice ??
+                            0 *
+                              (1 -
+                                (featuredMovie.pricing?.discountPercent ?? 0) /
+                                  100)
                           ).toFixed(2)}
                         </span>
                         <span className="ml-2 text-sm bg-red-600 text-white px-2 py-1 rounded">
