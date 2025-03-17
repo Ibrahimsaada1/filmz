@@ -1,9 +1,17 @@
-import { PrismaClient } from '@prisma/client'
+import {
+  Genre,
+  Movie,
+  Pricing,
+  PrismaClient,
+  UserLike,
+  UserPurchase,
+} from '@prisma/client'
 import {
   TMDB_ACCESS_TOKEN,
   TMDB_API_URL,
   TMDB_IMAGE_URL,
 } from '../config.server'
+import { dbClient } from '../internal/db-client'
 
 const prisma = new PrismaClient()
 
@@ -35,11 +43,14 @@ interface TMDBResponse<T> {
 /**
  * Get the full URL for a TMDB image
  */
-export function getTMDBImageUrl(path: string | null, size: string = 'w500'): string {
+export function getTMDBImageUrl(
+  path: string | null,
+  size: string = 'w500',
+): string {
   if (!path) {
-    return '/images/placeholder.png'; // Use our placeholder image
+    return '/images/placeholder.png' // Use our placeholder image
   }
-  return `https://image.tmdb.org/t/p/${size}${path}`;
+  return `https://image.tmdb.org/t/p/${size}${path}`
 }
 
 // Fetch popular movies from TMDB
@@ -207,13 +218,24 @@ export async function searchMovies(
   }
 }
 
+export type MovieWithRelations = Movie & {
+  genre?: Genre
+  pricing?: Pricing
+  likes?: UserLike[]
+  purchases?: UserPurchase[]
+}
+
 // Helper function to upsert multiple movies to database
 async function upsertMoviesToDatabase(movies: TMDBMovie[]) {
+  const updatedMovies: MovieWithRelations[] = []
   try {
     for (const movie of movies) {
-      await upsertMovieToDatabase(movie)
+      const updatedMovie = await upsertMovieToDatabase(movie)
+      updatedMovies.push(updatedMovie as MovieWithRelations)
     }
     console.log(`Upserted ${movies.length} movies to database`)
+
+    return updatedMovies
   } catch (error) {
     console.error('Error upserting movies to database:', error)
   }
@@ -237,21 +259,23 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
     // Check if the movie already exists
     const existingMovie = await prisma.movie.findUnique({
       where: { tmdbId: movie.id },
-      include: { pricing: true }
+      include: { pricing: true },
     })
 
     // Always generate pricing data
     // If the movie exists and has pricing, we'll keep it
     // If not, we'll create new pricing
-    const basePrice = existingMovie?.pricing?.basePrice || 
+    const basePrice =
+      existingMovie?.pricing?.basePrice ||
       parseFloat((Math.floor(Math.random() * 6) + 9).toFixed(2))
-    
+
     const shouldDiscount = Math.random() > 0.7
-    const discountPercent = existingMovie?.pricing?.discountPercent || 
+    const discountPercent =
+      existingMovie?.pricing?.discountPercent ||
       (shouldDiscount ? Math.floor(Math.random() * 30) + 10 : null)
 
     // Create or update the movie
-    await prisma.movie.upsert({
+    const updatedMovie = await prisma.movie.upsert({
       where: { tmdbId: movie.id },
       update: {
         title: movie.title,
@@ -265,15 +289,15 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
         releaseDate: movie.release_date ? new Date(movie.release_date) : null,
         rating: movie.vote_average,
         genreId: genreId,
-        pricing: existingMovie?.pricing 
+        pricing: existingMovie?.pricing
           ? undefined // Don't update existing pricing
           : {
               create: {
                 basePrice,
                 discountPercent,
                 currency: 'USD',
-              }
-            }
+              },
+            },
       },
       create: {
         tmdbId: movie.id,
@@ -293,29 +317,45 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
             basePrice: 9.99, // Fixed price for new movies
             discountPercent: null, // No discount by default
             currency: 'USD',
-          }
-        }
+          },
+        },
+      },
+      select: {
+        id: true,
+        backdropUrl: true,
+        description: true,
+        genreId: true,
+        pricing: true,
+        releaseDate: true,
+        rating: true,
+        genre: true,
+        tmdbId: true,
+        title: true,
+        thumbnailUrl: true,
+        createdAt: true,
+        likes: true,
+        _count: true,
+        purchases: true,
+        reviews: true,
+        updatedAt: true,
       },
     })
 
     // If we just created a movie without pricing (shouldn't happen with the logic above, but just in case)
     if (!existingMovie?.pricing) {
-      const updatedMovie = await prisma.movie.findUnique({
-        where: { tmdbId: movie.id },
-        include: { pricing: true }
-      })
-      
       if (!updatedMovie?.pricing) {
         // Create pricing if it doesn't exist
         await prisma.pricing.create({
           data: {
             movieId: updatedMovie.id,
             basePrice: 9.99,
-            currency: 'USD'
-          }
+            currency: 'USD',
+          },
         })
       }
     }
+
+    return updatedMovie
   } catch (error) {
     console.error(`Error upserting movie ${movie.title} to database:`, error)
   }
@@ -338,4 +378,49 @@ async function upsertGenresToDatabase(genres: { id: number; name: string }[]) {
   } catch (error) {
     console.error('Error upserting genres to database:', error)
   }
+}
+
+export async function fetchTMDBMovies(page: number = 1): Promise<TMDBMovie[]> {
+  try {
+    const response = await fetch(
+      `${TMDB_API_URL}/discover/movie?` +
+        new URLSearchParams({
+          include_adult: 'false',
+          include_video: 'false',
+          language: 'en-US',
+          page: page.toString(),
+          sort_by: 'popularity.desc',
+        }),
+      {
+        headers: {
+          Authorization: `Bearer ${TMDB_ACCESS_TOKEN}`,
+          Accept: 'application/json',
+        },
+        next: { revalidate: 3600 }, // Cache for 1 hour
+      },
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        `TMDB API error: ${response.status} ${response.statusText}`,
+      )
+    }
+
+    const data: TMDBResponse<TMDBMovie> = await response.json()
+
+    console.log(
+      `Successfully fetched ${data.results.length} movies from TMDB (Page ${page}/${data.total_pages})`,
+    )
+
+    return data.results
+  } catch (error) {
+    console.error('Error fetching movies from TMDB:', error)
+    throw error
+  }
+}
+
+export async function syncTMDBMovies() {
+  const tmdbMovies = await fetchTMDBMovies()
+
+  return await upsertMoviesToDatabase(tmdbMovies)
 }
