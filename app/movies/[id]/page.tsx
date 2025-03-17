@@ -50,8 +50,6 @@ export default async function MovieDetailPage({
     isPurchased = !!purchase
   }
 
-  console.log(isPurchased)
-
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <MovieDetailClient movie={movie} isPurchased={isPurchased} />
