@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int            @id @default(autoincrement())
+  firstname String
+  lastname  String
+  email     String         @unique
+  password  String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  purchases UserPurchase[] // Relation to purchases
+  likes     UserLike[] // Relation to liked movies
+  reviews   MovieReview[] // Relation to movie reviews
+}
+
+model Genre {
+  id          Int      @id @default(autoincrement())
+  tmdbId      Int      @unique
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  movies      Movie[]
+}
+
+model Movie {
+  id           Int            @id @default(autoincrement())
+  tmdbId       Int            @unique
+  title        String
+  description  String?
+  thumbnailUrl String? // URL to the movie thumbnail image
+  backdropUrl  String? // URL to the movie backdrop image
+  releaseDate  DateTime?
+  rating       Float          @default(0)
+  genreId      Int?
+  genre        Genre?         @relation(fields: [genreId], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  pricing      Pricing?
+  purchases    UserPurchase[]
+  likes        UserLike[] // Relation to users who liked this movie
+  reviews      MovieReview[] // Relation to reviews
+}
+
+model Pricing {
+  id              Int      @id @default(autoincrement())
+  movieId         Int      @unique
+  movie           Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  basePrice       Float
+  discountPercent Int?
+  currency        String   @default("USD")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model UserPurchase {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  movieId       Int
+  pricePaid     Float
+  currency      String   @default("USD")
+  paymentMethod String
+  transactionId String?
+  purchaseDate  DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+  movie         Movie    @relation(fields: [movieId], references: [id])
+
+  @@unique([userId, movieId])
+  @@map("user_purchases")
+}
+
+model UserLike {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  movieId   Int
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  createdAt DateTime @default(now())
+
+  // Unique constraint to prevent duplicate likes
+  @@unique([userId, movieId])
+}
+
+model MovieReview {
+  id        Int      @id @default(autoincrement())
+  rating    Int // Rating from 1-5
+  comment   String? // Optional review text
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  movieId   Int
+  movie     Movie    @relation(fields: [movieId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Unique constraint to allow only one review per user per movie
+  @@unique([userId, movieId])
+}
