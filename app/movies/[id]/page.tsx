@@ -17,6 +17,7 @@ export default async function MovieDetailPage({
 
   const movieId = parseInt(params.id)
 
+  console.log(`movieId: ${movieId}`)
   if (isNaN(movieId)) {
     return redirect('/login')
   }

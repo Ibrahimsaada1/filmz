@@ -11,9 +11,11 @@ const nextConfig = {
     domains: ['image.tmdb.org'],
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ['*'],
+      bodySizeLimit: '10mb',
+    },
   },
-  output: 'standalone', 
 }
 
 module.exports = nextConfig 
