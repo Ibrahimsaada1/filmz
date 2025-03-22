@@ -2,6 +2,8 @@ import { Suspense } from 'react'
 import { Header } from '@/app/components/Header'
 import PurchaseMoviePageClient from './pageClient'
 
+export const dynamic = 'force-dynamic'
+
 export default async function PurchaseMoviePage({
   params: promiseParams,
 }: {

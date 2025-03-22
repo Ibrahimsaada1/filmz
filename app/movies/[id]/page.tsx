@@ -6,7 +6,7 @@ import { Suspense } from 'react'
 import { Film } from 'lucide-react'
 import { Header } from '@/app/components/Header'
 
-export const fetchCache = 'force-no-store';
+export const dynamic = 'force-dynamic'
 
 export default async function MovieDetailPage({
   params: promiseParams,

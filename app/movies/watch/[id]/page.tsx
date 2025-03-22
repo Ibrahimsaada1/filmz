@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Header } from '@/app/components/Header'
 import { useAuth } from '@/lib/auth/AuthContext'
 
-export const fetchCache = 'force-no-store';
+export const dynamic = 'force-dynamic'
 
 export default function WatchMoviePage({ params }) {
   const [movie, setMovie] = useState(null)
