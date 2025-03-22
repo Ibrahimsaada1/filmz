@@ -8,7 +8,7 @@ import { PrismaClient } from '@prisma/client'
 
 let dbClient: PrismaClient | undefined
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.APP_ENV === 'production') {
   dbClient = new PrismaClient()
 } else {
   if (!dbClient) {

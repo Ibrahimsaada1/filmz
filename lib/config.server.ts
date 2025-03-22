@@ -38,11 +38,13 @@ export const FEATURES = {
 }
 
 // Environment detection
-export const IS_PRODUCTION = process.env.NODE_ENV === 'production'
-export const IS_DEVELOPMENT = process.env.NODE_ENV === 'development'
-export const IS_TEST = process.env.NODE_ENV === 'test'
+export const IS_PRODUCTION = process.env.APP_ENV === 'production'
+export const IS_DEVELOPMENT = process.env.APP_ENV === 'development'
+export const IS_TEST = process.env.APP_ENV === 'test'
 
 // TMDB API Configuration
 export const TMDB_ACCESS_TOKEN = process.env.TMDB_ACCESS_TOKEN || ''
-export const TMDB_API_URL = process.env.TMDB_API_URL || 'https://api.themoviedb.org/3'
-export const TMDB_IMAGE_URL = process.env.TMDB_IMAGE_URL || 'https://image.tmdb.org/t/p'
+export const TMDB_API_URL =
+  process.env.TMDB_API_URL || 'https://api.themoviedb.org/3'
+export const TMDB_IMAGE_URL =
+  process.env.TMDB_IMAGE_URL || 'https://image.tmdb.org/t/p'
