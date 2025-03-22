@@ -8,7 +8,7 @@ RUN apt-get update -y && \
 
 COPY package.json .
 
-RUN npm ci
+RUN npm i
 
 COPY . .
 
