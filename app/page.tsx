@@ -57,9 +57,9 @@ export default function Home() {
               platform-hopping.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <a 
+              <Link 
                 href="/movies"
-                className="inline-block bg-red-600 hover:bg-red-700 text-white font-medium px-8 py-4 rounded-md text-lg transition-colors inline-flex items-center justify-center"
+                className="inline-block bg-red-600 hover:bg-red-700 text-white font-medium px-8 py-4 rounded-md text-lg transition-colors items-center justify-center"
               >
                 Browse Movies
                 <svg
@@ -75,7 +75,7 @@ export default function Home() {
                     d="M9 5l7 7-7 7"
                   />
                 </svg>
-              </a>
+              </Link>
               <Link
                 href="/signup"
                 className="border border-white/30 hover:bg-white/10 text-white font-medium px-8 py-4 rounded-md text-lg transition-colors inline-flex items-center justify-center"

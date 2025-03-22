@@ -241,7 +241,7 @@ async function upsertMovieToDatabase(movie: TMDBMovie) {
     // Find the genre in our database
     let genreId = null
     if (primaryGenreId) {
-      const genre = await prisma.genre.findUnique({
+      const genre = await dbClient.genre.findUnique({
         where: { tmdbId: primaryGenreId },
       })
       genreId = genre?.id || null

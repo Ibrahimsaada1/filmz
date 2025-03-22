@@ -6,17 +6,18 @@ import { Header } from '@/app/components/Header'
 import { MovieCard } from '@/app/components/MovieCard'
 import { Pagination } from '@/app/components/Pagination'
 import { getTMDBImageUrl, syncTMDBMovies } from '@/lib/services/tmdb'
-import { Prisma } from '@prisma/client'
 
 // Define the props type with ReadonlyURLSearchParams
 type Props = {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default async function MoviesPage({ searchParams }: Props) {
+export default async function MoviesPage({
+  searchParams: promiseSearchParams,
+}: Props) {
   // First sync with TMDB
   // Extract query parameters
-  searchParams = await searchParams
+  const searchParams = await promiseSearchParams
 
   const pageParam = searchParams.page
   const genreParam = searchParams.genre

@@ -7,11 +7,11 @@ import { Film } from 'lucide-react'
 import { Header } from '@/app/components/Header'
 
 export default async function MovieDetailPage({
-  params,
+  params: promiseParams,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
-  params = await params
+  const params = await promiseParams
 
   const movieId = parseInt(params.id)
 

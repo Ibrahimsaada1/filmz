@@ -17,7 +17,7 @@ export default async function FavoritesPage() {
     redirect('/login?callbackUrl=/favorites')
   }
   // Get user's favorite movies
-  const favorites = await dbClient.userLike.findMany({
+  const favorites = await dbClient!.userLike.findMany({
     where: { userId: user.id },
     include: {
       movie: {
@@ -58,7 +58,7 @@ export default async function FavoritesPage() {
           ) : (
             <div className="text-center py-12">
               <p className="text-gray-400 mb-6">
-                You haven't added any movies to your favorites yet.
+                You haven&apos;t added any movies to your favorites yet.
               </p>
               <Link
                 href="/movies"

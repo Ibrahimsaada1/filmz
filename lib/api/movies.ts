@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
 import { useAuth } from '../auth/AuthContext'
+import { MovieWithRelations } from '../services/tmdb'
 
 export interface Movie {
   id: number
@@ -47,7 +48,7 @@ export function useMovies(filters?: Record<string, string>) {
   return useQuery({
     queryKey: movieKeys.list(queryString),
     queryFn: async () => {
-      const data = await apiClient<{ movies: Movie[], pagination: any }>(`/api/movies${queryString}`, { token })
+      const data = await apiClient<{ movies: MovieWithRelations[]; pagination: any }, void>(`/api/movies${queryString}`, { token })
       return data.movies
     },
   })
@@ -60,7 +61,7 @@ export function useMovie(id: number) {
   return useQuery({
     queryKey: movieKeys.detail(id),
     queryFn: () => 
-      apiClient<{ movie: Movie }>(`/api/movies/${id}`, { token })
+      apiClient<{ movie: MovieWithRelations }, unknown>(`/api/movies/${id}`, { token })
         .then(data => data.movie),
   })
 }
@@ -72,7 +73,7 @@ export function useAddMovie() {
   
   return useMutation({
     mutationFn: (newMovie: Omit<Movie, 'id' | 'createdAt' | 'updatedAt'>) => 
-      apiClient<{ movie: Movie }>('/api/movies', {
+      apiClient<{ movie: MovieWithRelations }, unknown>('/api/movies', {
         method: 'POST',
         body: newMovie,
         token,
@@ -91,7 +92,7 @@ export function useUpdateMovie() {
   
   return useMutation({
     mutationFn: ({ id, ...updates }: Partial<Movie> & { id: number }) => 
-      apiClient<{ movie: Movie }>(`/api/movies/${id}`, {
+      apiClient<{ movie: Movie }, unknown>(`/api/movies/${id}`, {
         method: 'PUT',
         body: updates,
         token,
@@ -111,7 +112,7 @@ export function useDeleteMovie() {
   
   return useMutation({
     mutationFn: (id: number) => 
-      apiClient<{ success: boolean }>(`/api/movies/${id}`, {
+      apiClient<{ success: boolean }, unknown>(`/api/movies/${id}`, {
         method: 'DELETE',
         token,
       }),

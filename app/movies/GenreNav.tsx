@@ -1,4 +1,3 @@
-import { dbClient } from '@/lib/internal/db-client'
 import { GenreNavClient } from './GenreNavClient'
 import { fetchGenres } from '@/lib/services/tmdb'
 

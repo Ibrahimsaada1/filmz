@@ -3,9 +3,9 @@ import { dbClient } from '@/lib/internal/db-client'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params:promiseParams }: { params: Promise<{ id: string }> },
 ) {
-  params = await params
+  const params = await promiseParams
   try {
     const id = parseInt(params.id)
 

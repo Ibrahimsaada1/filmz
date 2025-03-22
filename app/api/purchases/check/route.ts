@@ -5,7 +5,7 @@ import { verifyAuth } from '@/lib/auth/auth-utils'
 export async function GET(request: NextRequest) {
   try {
     // Verify authentication
-    const authResult = await verifyAuth(request)
+    const authResult = await verifyAuth()
     if (!authResult.success) {
       return NextResponse.json(
         { error: 'Authentication required' },

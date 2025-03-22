@@ -1,25 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { dbClient } from '@/lib/internal/db-client'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Simple query to test if Prisma is working
-    const count = await dbClient.movie.count()
-    
+    const count = await dbClient!.movie.count()
+
     return NextResponse.json({
       success: true,
       message: 'Database connection successful',
-      movieCount: count
+      movieCount: count,
     })
   } catch (error) {
     console.error('Database test failed:', error)
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Database connection failed', 
-        details: error instanceof Error ? error.message : String(error)
+        error: 'Database connection failed',
+        details: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
-} 
+}

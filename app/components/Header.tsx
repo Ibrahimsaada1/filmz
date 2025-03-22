@@ -30,7 +30,7 @@ export function Header() {
     >
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <div className="flex items-center">
-          <a href="/" className="mr-10">
+          <Link href="/" className="mr-10">
             <h1 className="text-2xl font-bold text-red-600">
               <span className="flex items-center">
                 <svg
@@ -43,7 +43,7 @@ export function Header() {
                 Filmz
               </span>
             </h1>
-          </a>
+          </Link>
 
           <nav className="hidden md:flex space-x-6">
             <NavLink path="/" label="Home" currentPath={pathname} />

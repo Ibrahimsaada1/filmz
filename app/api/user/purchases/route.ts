@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { dbClient } from '@/lib/internal/db-client'
 import { verifyAuth } from '@/lib/auth/auth-utils'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Verify authentication
-    const authResult = await verifyAuth(request)
+    const authResult = await verifyAuth()
     if (!authResult.success) {
       return NextResponse.json(
         { error: 'Authentication required' },

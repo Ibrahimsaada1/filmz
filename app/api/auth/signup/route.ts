@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const validation = await validateRequest(request, signupSchema)
 
     if (!validation.success) {
-      return addCorsHeaders(validation.response, request)
+      return addCorsHeaders(NextResponse.json({ error: 'Invalid request' }, { status: 400 }), request)
     }
 
     const { firstname, lastname, email, password } = validation.data

@@ -104,7 +104,7 @@ export default function LibraryPage() {
                 Your library is empty
               </h2>
               <p className="mb-6">
-                You haven't purchased any movies yet. Browse our collection and
+                You haven&apos;t purchased any movies yet. Browse our collection and
                 buy your first movie to start building your library.
               </p>
             </div>
