@@ -113,7 +113,7 @@ export function MovieDetailClient({
             {isPurchased ? (
               <div className="mb-6">
                 <Link
-                  href={`/watch/${movie.id}`}
+                  href={`/movies/watch/${movie.id}`}
                   className="inline-block bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-md transition-colors"
                 >
                   Watch Now
