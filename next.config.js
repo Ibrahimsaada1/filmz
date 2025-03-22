@@ -13,8 +13,7 @@ const nextConfig = {
   experimental: {
     serverActions: true,
   },
-  // Enable static optimization where possible
-  staticPageGenerationTimeout: 120,
+  output: 'standalone', 
 }
 
 module.exports = nextConfig 

@@ -10,8 +10,6 @@ export default async function FavoritesPage() {
   // Check if user is authenticated
   const user = await getServerSession()
 
-  console.log({ user })
-
   if (!user) {
     // Redirect to login if not authenticated
     redirect('/login?callbackUrl=/favorites')
