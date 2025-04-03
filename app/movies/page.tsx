@@ -55,7 +55,7 @@ export default async function MoviesPage({
   }
 
   // Select a featured movie
-  const featuredMovie =
+  const featuredMovie = 
     movies.length > 0
       ? movies[Math.floor(Math.random() * Math.min(5, movies.length))]
       : null

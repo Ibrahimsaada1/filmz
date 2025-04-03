@@ -26,7 +26,7 @@ async function getAwsRecommendations(userId: number) {
     .getRecommendations({
       campaignArn,
       userId: userId.toString(),
-      numResults: 12,
+      numResults: 6,
     })
     .promise()
   return response.itemList.map((item) => Number(item.itemId))
