@@ -12,9 +12,7 @@ if (process.env.APP_ENV === 'production') {
   dbClient = new PrismaClient()
 } else {
   if (!dbClient) {
-    dbClient = new PrismaClient({
-      log: ['query', 'info', 'warn', 'error'],
-    })
+    dbClient = new PrismaClient()
   }
 }
 

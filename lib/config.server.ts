@@ -48,3 +48,9 @@ export const TMDB_API_URL =
   process.env.TMDB_API_URL || 'https://api.themoviedb.org/3'
 export const TMDB_IMAGE_URL =
   process.env.TMDB_IMAGE_URL || 'https://image.tmdb.org/t/p'
+
+// AWS Configuration
+export const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || ''
+export const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || ''
+export const AWS_REGION = process.env.AWS_REGION || 'us-east-1'
+export const AWS_ACCOUNT_ID = process.env.AWS_ACCOUNT_ID || ''

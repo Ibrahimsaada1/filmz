@@ -5,7 +5,22 @@ import { GenreNav } from './GenreNav'
 import { Header } from '@/app/components/Header'
 import { MovieCard } from '@/app/components/MovieCard'
 import { Pagination } from '@/app/components/Pagination'
-import { getTMDBImageUrl, syncTMDBMovies } from '@/lib/services/tmdb'
+import {
+  getTMDBImageUrl,
+  MovieWithRelations,
+  syncTMDBMovies,
+} from '@/lib/services/tmdb'
+import { getRecommendations } from '@/lib/services/recommendation'
+import { getServerSession } from '@/lib/auth'
+import { redirect } from 'next/navigation'
+
+function Fallback() {
+  return (
+    <div className="flex justify-center items-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+    </div>
+  )
+}
 
 // Define the props type with ReadonlyURLSearchParams
 type Props = {
@@ -24,8 +39,20 @@ export default async function MoviesPage({
   const currentPage = typeof pageParam === 'string' ? parseInt(pageParam) : 1
   const genre = typeof genreParam === 'string' ? genreParam : ''
 
+  const user = await getServerSession()
+
+  if (!user) {
+    redirect('/login?callbackUrl=/movies')
+  }
+
   // Fetch movies with pagination and include pricing information
   const { movies, totalPages } = await syncTMDBMovies(currentPage, genre)
+  let recommendations: MovieWithRelations[] = []
+  try {
+    recommendations = await getRecommendations(user?.id)
+  } catch (error) {
+    console.error(error)
+  }
 
   // Select a featured movie
   const featuredMovie =
@@ -148,6 +175,21 @@ export default async function MoviesPage({
         </div>
 
         <div className="space-y-12">
+          <Suspense fallback={<Fallback />}>
+            {recommendations.length > 0 ? (
+              <section>
+                <h2 className="text-2xl font-bold mb-6">
+                  Recommendations for you
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                  {recommendations.map((movie) => (
+                    <MovieCard key={movie.id} movie={movie} />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+          </Suspense>
+
           {/* Popular Movies Section */}
           <section>
             <h2 className="text-2xl font-bold mb-6">
@@ -156,13 +198,7 @@ export default async function MoviesPage({
                 : 'Popular Movies'}
             </h2>
 
-            <Suspense
-              fallback={
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
-                </div>
-              }
-            >
+            <Suspense fallback={<Fallback />}>
               {movies.length > 0 ? (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
