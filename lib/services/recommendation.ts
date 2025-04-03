@@ -20,7 +20,7 @@ function getPersonalizeClient() {
 async function getAwsRecommendations(userId: number) {
   const campaignName = 'filmz-campaign'
 
-  const campaignArn = `arn:aws:personalize:us-east-1:846745747492:campaign/test-compaign`
+  const campaignArn = `arn:aws:personalize:us-east-1:846745747492:campaign/filmz-campaign-xmMtJJVaa_`
   const personalize = getPersonalizeClient()
   const response = await personalize
     .getRecommendations({
