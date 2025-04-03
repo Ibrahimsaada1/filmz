@@ -59,7 +59,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
                 href="/movies"
-                className="inline-block bg-red-600 hover:bg-red-700 text-white font-medium px-8 py-4 rounded-md text-lg transition-colors items-center justify-center"
+                className="bg-red-600 hover:bg-red-700 text-white font-medium px-8 py-4 rounded-md text-lg transition-colors items-center flex justify-center"
               >
                 Browse Movies
                 <svg

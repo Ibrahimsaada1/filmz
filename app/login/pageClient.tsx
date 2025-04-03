@@ -18,7 +18,7 @@ export default function LoginPageClient({
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
-  const redirect = searchParams['redirect'] || '/'
+  const redirect = searchParams['callbackUrl'] || '/movies'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

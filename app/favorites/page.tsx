@@ -5,7 +5,7 @@ import { MovieCard } from '@/app/components/MovieCard'
 import { dbClient } from '@/lib/internal/db-client'
 import { redirect } from 'next/navigation'
 import { getServerSession } from '@/lib/auth'
-
+import Loader from '../components/Loader'
 export default async function FavoritesPage() {
   // Check if user is authenticated
   const user = await getServerSession()
@@ -40,13 +40,7 @@ export default async function FavoritesPage() {
       <div className="container mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold mb-8">My Favorites</h1>
 
-        <Suspense
-          fallback={
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
-            </div>
-          }
-        >
+        <Suspense fallback={<Loader />}>
           {favoriteMovies.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
               {favoriteMovies.map((movie) => (

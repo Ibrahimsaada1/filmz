@@ -8,21 +8,19 @@ import {
   ReactNode,
 } from 'react'
 import { useRouter } from 'next/navigation'
+import { User } from '@prisma/client'
 
 // Define types
-type User = {
-  id: number
-  email: string
-  name: string
-  role: string
-}
 
 type AuthContextType = {
   user: User | null
   token: string | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  login: (
+    email: string,
+    password: string,
+  ) => Promise<{ success: boolean; error?: string }>
   logout: () => void
 }
 
@@ -40,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
     const storedUser = localStorage.getItem('user')
-    
+
     if (storedToken && storedUser) {
       try {
         setToken(storedToken)
@@ -51,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('user')
       }
     }
-    
+
     setIsLoading(false)
   }, [])
 
@@ -60,18 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     try {
       console.log('Attempting login for:', email)
-      
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-        cache: 'no-store'
+        cache: 'no-store',
       })
-      
+
       console.log('Login response status:', response.status)
-      
+
       const data = await response.json()
       console.log('Login response data:', data)
 
@@ -83,30 +81,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Store auth data
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      
+
       setToken(data.token)
       setUser(data.user)
       setIsLoading(false)
-      
+
       return { success: true }
     } catch (error) {
       console.error('Login error details:', error)
       setIsLoading(false)
-      return { 
-        success: false, 
-        error: error instanceof Error 
-          ? `Network error: ${error.message}` 
-          : 'Network error. Please try again.' 
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? `Network error: ${error.message}`
+            : 'Network error. Please try again.',
       }
     }
   }
 
   // Logout function
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     setToken(null)
     setUser(null)
+
+    await fetch('/api/auth/logout', {
+      method: 'GET',
+      cache: 'no-store',
+    })
     router.push('/login')
   }
 
